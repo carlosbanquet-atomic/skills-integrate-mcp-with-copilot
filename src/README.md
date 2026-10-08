@@ -5,7 +5,20 @@ A super simple FastAPI application that allows students to view and sign up for 
 ## Features
 
 - View all available extracurricular activities
-- Sign up for activities
+- Teachers can sign up or unregister students after logging in
+- Students can view activities and participant rosters without an account
+
+## Teacher accounts
+
+Teacher credentials are assigned outside the application and stored in `src/teachers.json`. Passwords must be PBKDF2-HMAC-SHA256 hashes; do not store plaintext passwords or commit real teacher passwords.
+
+Generate the salt and password hash for a teacher with:
+
+```sh
+python3 -c 'import getpass, hashlib, json, secrets; p=getpass.getpass("Password: "); s=secrets.token_bytes(16); print(json.dumps({"username":"teacher@mergington.edu","salt":s.hex(),"password_hash":hashlib.pbkdf2_hmac("sha256",p.encode(),s,600000).hex()}))'
+```
+
+Add the printed object to the `teachers` array in `src/teachers.json`. Teacher sessions expire after eight hours and are cleared when the server restarts.
 
 ## Getting Started
 
@@ -30,7 +43,10 @@ A super simple FastAPI application that allows students to view and sign up for 
 | Method | Endpoint                                                          | Description                                                         |
 | ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
 | GET    | `/activities`                                                     | Get all activities with their details and current participant count |
-| POST   | `/activities/{activity_name}/signup?email=student@mergington.edu` | Sign up for an activity                                             |
+| POST   | `/auth/login`                                                      | Create a teacher session                                            |
+| POST   | `/auth/logout`                                                     | Revoke a teacher session                                            |
+| POST   | `/activities/{activity_name}/signup?email=student@mergington.edu` | Teacher signs up a student for an activity                          |
+| DELETE | `/activities/{activity_name}/unregister?email=student@mergington.edu` | Teacher removes a student from an activity                       |
 
 ## Data Model
 
